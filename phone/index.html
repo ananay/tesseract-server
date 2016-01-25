@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<style type="text/css">
+			body{
+				background: #000;
+			}
+			.brake{
+				width: 100%;
+				height: 100%;
+				position: absolute;
+				top:0;
+				left:0;
+				background: #000;
+			}
+			/*.brake span{
+				color:#fff;
+				font-family: "System";
+				font-size: 120pt;
+				position: absolute;
+				top:50%;
+				left:50%;
+				-webkit-transform:translate(-50%,-50%);
+				-moz-transform:translate(-50%,-50%);
+				-o-transform:translate(-50%,-50%);
+				transform:translate(-50%,-50%);
+			}*/
+		</style>
+		<script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"></script>
+		<script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+		<link rel="stylesheet" type="text/css" href="nouislider.min.css">
+		<script type="text/javascript" src="nouislider.min.js"></script>
+	</head>
+	<body>
+		<div class="brake" id="brake"></div>
+		<div id="slider"></div>
+		<script type="text/javascript">
+			var rangeSlider = document.getElementById('slider');
+			noUiSlider.create(rangeSlider, {
+				start: [ 100 ],
+				range: {
+					'min': [  40 ],
+					'max': [ 200 ]
+				}
+			});
+		</script>
+		<script type="text/javascript">
+			$(function() {
+				$(".slider").slider();
+			});
+			// var connection_string = '';
+			var conn = new WebSocket("ws://192.168.1.39:8080");
+			var braked = 0;
+			navigator.getUserMedia  = navigator.getUserMedia ||
+                          navigator.webkitGetUserMedia ||
+                          navigator.mozGetUserMedia ||
+                          navigator.msGetUserMedia;
+			conn.onopen = function(m)
+			{	
+				if (window.DeviceOrientationEvent)
+				{
+					function clamp(xx, minn, maxx)
+					{
+						return Math.max(minn, Math.min(maxx, xx));
+					}
+
+					window.addEventListener('deviceorientation', function(eventData)
+					{
+							var x = eventData.alpha;
+							var y = eventData.beta;
+							var z = eventData.gamma;
+							y = clamp(y, -50, 50);
+							if (z < 0)
+								z = clamp(z, -90, -60);
+							else 
+								z = clamp(z, 45, 90);
+							$(".brake").on('touchstart', function(){
+								braked = 1;
+							});
+							$(".brake").on('touchend touchcancel', function(){
+								braked = 0;
+							});
+							sendToPC(y,z,braked, rangeSlider.noUiSlider.get());
+					});
+
+					function sendToPC(y, z, brake, time)
+					{
+						var json = '1 '+z+' '+y+ " "+brake+" "+time;
+						conn.send(json);
+					}
+
+				}
+			}
+			conn.onmessage = function(m)
+			{
+				if (m.data == "vibrate"){
+					navigator.vibrate(500);
+				}
+			}
+		</script>
+	</body>
+</html>
