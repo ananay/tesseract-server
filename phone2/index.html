@@ -50,7 +50,7 @@
 				$(".slider").slider();
 			});
 			// var connection_string = '';
-			var conn = new WebSocket("ws://192.168.1.39:8080");
+			var conn = new WebSocket("ws://192.168.1.2:8080");
 			var braked = 0;
 			navigator.getUserMedia  = navigator.getUserMedia ||
                           navigator.webkitGetUserMedia ||
@@ -86,7 +86,7 @@
 
 					function sendToPC(y, z, brake, time)
 					{
-						var json = '1 '+z+' '+y+ " "+brake+" "+time;
+						var json = '2 '+z+' '+y+ " "+brake+" "+time;
 						conn.send(json);
 					}
 
@@ -94,7 +94,7 @@
 			}
 			conn.onmessage = function(m)
 			{
-				if (m.data == "vibrate"){
+				if (m.data == "vibrate2"){
 					navigator.vibrate(500);
 				}
 			}
